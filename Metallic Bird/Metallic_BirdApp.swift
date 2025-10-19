@@ -12,6 +12,11 @@ struct Metallic_BirdApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .navigationTitle("Metallic Bird")
+#if os(macOS)
+                .frame(maxWidth: size.width, maxHeight: size.height)
+#endif
         }
+        .windowResizability(.contentSize)
     }
 }
