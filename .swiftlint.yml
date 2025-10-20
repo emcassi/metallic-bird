@@ -1,0 +1,8 @@
+#  .swiftlint.yml
+#  Metallic Bird
+#
+#  Created by Alex Sigalos on 10/20/25.
+#
+trailing_comma:
+  severity: warning
+  mandatory_comma: true

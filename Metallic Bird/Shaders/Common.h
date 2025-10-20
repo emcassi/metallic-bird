@@ -13,6 +13,29 @@
 typedef struct {
     uint32_t width;
     uint32_t height;
-} Params;
+} WindowSize;
+
+typedef struct {
+    simd_float2 pos;
+    simd_float2 size;
+    float cosTheta;
+    float sinTheta;
+    float z;
+} SpriteInstance;
+
+typedef struct {
+    simd_float4x4 proj;
+} FrameUniforms;
+
+typedef enum {
+    Position = 0,
+    UV = 1
+} Attributes;
+
+typedef enum {
+    VertexBuffer = 0,
+    UVBuffer = 1,
+    UniformsBuffer = 11,
+} Buffers;
 
 #endif /* Common_h */
