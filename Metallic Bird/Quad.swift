@@ -25,7 +25,8 @@ class Quad {
                 bytes: vertices,
                 length: MemoryLayout<SIMD2<Float>>.stride * vertices.count,
                 options: .storageModeShared
-            ) else {
+            )
+        else {
             fatalError("Failed to create quad buffers")
         }
         self.vertexBuffer = vertexBuffer
@@ -62,29 +63,28 @@ class Quad {
                 vertexCount: 4,
                 instanceCount: instances.count
             )
-
     }
 }
 
 extension Buffers {
-  var index: Int {
-    Int(rawValue)
-  }
+    var index: Int {
+        Int(rawValue)
+    }
 }
 
 extension Attributes {
-  var index: Int {
-    Int(rawValue)
-  }
+    var index: Int {
+        Int(rawValue)
+    }
 }
 
 extension MTLVertexDescriptor {
     static let defaultDesc = {
-        let vd = MTLVertexDescriptor()
-        vd.attributes[0].format = .float2
-        vd.attributes[0].offset = 0
-        vd.attributes[0].bufferIndex = 0
-        vd.layouts[0].stride = MemoryLayout<SIMD2<Float>>.stride
-        return vd
+        let desc = MTLVertexDescriptor()
+        desc.attributes[0].format = .float2
+        desc.attributes[0].offset = 0
+        desc.attributes[0].bufferIndex = 0
+        desc.layouts[0].stride = MemoryLayout<SIMD2<Float>>.stride
+        return desc
     }()
 }

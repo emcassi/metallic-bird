@@ -6,7 +6,6 @@
 //
 
 extension float4x4 {
-
     static let identity = matrix_identity_float4x4
 
     init(matrix: simd_float4x4) {
@@ -48,7 +47,8 @@ extension float4x4 {
                       bottom: Float,
                       top: Float,
                       near: Float,
-                      far: Float) -> simd_float4x4 {
+                      far: Float) -> simd_float4x4
+    {
         let scaleX: Float = 2 / (right - left)
         let scaleY: Float = 2 / (top - bottom)
         let scaleZ: Float = 1 / (far - near)

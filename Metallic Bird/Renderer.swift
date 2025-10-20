@@ -123,7 +123,8 @@ extension Renderer: MTKViewDelegate {
         if !seeded, size.width > 0, size.height > 0 {
             seedInstances(for: size)
             seeded = true
-        }    }
+        }
+    }
 
     func draw(in view: MTKView) {
         guard seeded else { return }
@@ -144,7 +145,8 @@ extension Renderer: MTKViewDelegate {
                 renderEncoder: renderEncoder,
                 instances: instances,
                 proj: frameUniforms
-                    .proj)
+                    .proj
+            )
 
         renderEncoder.endEncoding()
 

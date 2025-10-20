@@ -9,14 +9,14 @@ import SwiftUI
 
 @main
 struct MetallicBirdApp: App {
-  var body: some Scene {
-    WindowGroup {
-      ContentView()
-        .navigationTitle("Metallic Bird")
-        #if os(macOS)
-          .frame(maxWidth: size.width, maxHeight: size.height)
-        #endif
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .navigationTitle("Metallic Bird")
+            #if os(macOS)
+                .frame(maxWidth: size.width, maxHeight: size.height)
+            #endif
+        }
+        .windowResizability(.contentSize)
     }
-    .windowResizability(.contentSize)
-  }
 }
