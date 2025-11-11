@@ -82,7 +82,7 @@ class Renderer: NSObject {
         pipelineDescriptor.vertexFunction = vertexFunc
         pipelineDescriptor.fragmentFunction = fragmentFunc
         if let attachment = pipelineDescriptor.colorAttachments[0] {
-            attachment.pixelFormat = self.metalView.colorPixelFormat
+            attachment.pixelFormat = metalView.colorPixelFormat
             attachment.isBlendingEnabled = true
             attachment.sourceRGBBlendFactor = .sourceAlpha
             attachment.destinationRGBBlendFactor = .oneMinusSourceAlpha

@@ -29,7 +29,7 @@ class Bird: GameObject {
         )
 
         super.init(textureName: textureName)
-        self.transform =  transform
+        self.transform = transform
     }
 
     override func update(_ deltaTime: Float, parent _: GameObject? = nil) {
@@ -68,9 +68,9 @@ class Bird: GameObject {
     }
 
     func updateScreenSize(_ size: CGSize) {
-        self.startPos = Vector2(x: Float(size.width) / 4, y: Float(size.height) / 2)
-        self.minY = Float(Renderer.safeAreaInsets.top) + transform.size.y * transform.scale
-        self.maxY = Ground.groundY - transform.size.y * transform.scale * 5 / 8
+        startPos = Vector2(x: Float(size.width) / 4, y: Float(size.height) / 2)
+        minY = Float(Renderer.safeAreaInsets.top) + transform.size.y * transform.scale
+        maxY = Ground.groundY - transform.size.y * transform.scale * 5 / 8
     }
 
     func onTap() {
