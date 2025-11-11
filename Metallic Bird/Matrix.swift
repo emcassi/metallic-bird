@@ -26,6 +26,13 @@ extension float4x4 {
         self.init(matrix: matrix)
     }
 
+    init(rotate angle: Float) {
+        var matrix = matrix_identity_float4x4
+        matrix.columns.0 = [cos(angle), -sin(angle), 0, 0]
+        matrix.columns.1 = [sin(angle), cos(angle), 0, 0]
+        self.init(matrix: matrix)
+    }
+
     init(scale: Float) {
         var matrix = matrix_identity_float4x4
         matrix.columns.0.x = scale
@@ -42,6 +49,7 @@ extension float4x4 {
         self.init(matrix: matrix)
     }
 
+    // swiftlint:disable:next function_parameter_count
     static func ortho(left: Float,
                       right: Float,
                       bottom: Float,
@@ -64,5 +72,10 @@ extension float4x4 {
             SIMD4<Float>(transX, transY, transZ, 1)
         ))
         return matrix
+    }
+
+    func multiply(vec: Vector2) -> SIMD4<Float> {
+        let vec4 = SIMD4(vec.x, vec.y, 0, 1)
+        return self * vec4
     }
 }

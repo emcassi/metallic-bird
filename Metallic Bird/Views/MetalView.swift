@@ -8,7 +8,7 @@
 import MetalKit
 import SwiftUI
 
-let size: CGSize = .init(width: 400, height: 875)
+let size: WindowSize = .init(width: 400, height: 875)
 
 struct MetalView: View {
     @State private var metalView = MTKView()
@@ -19,7 +19,7 @@ struct MetalView: View {
             metalView: $metalView,
             renderer: renderer
         ).onAppear {
-            renderer = Renderer(metalView: metalView)
+            renderer = Renderer(metalView: metalView, initialWindowSize: size)
         }
     }
 }

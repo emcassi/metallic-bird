@@ -8,23 +8,24 @@
 import MetalKit
 
 class Renderer: NSObject {
+    private let metalView: MTKView
+
+    static var windowSize = WindowSize()
     static var device: MTLDevice!
     static var commandQueue: MTLCommandQueue!
     static var library: MTLLibrary!
 
-    var renderState: MTLRenderPipelineState!
-    var windowSize = WindowSize()
-
-    private var quad: Quad
-
-    private var seeded = false
-
+    private var renderState: MTLRenderPipelineState!
+    static var proj: float4x4!
     private var frameUniforms = FrameUniforms()
-    private var instanceBuffer: MTLBuffer!
-    private var instances: [SpriteInstance] = []
-    private let maxInstances = 20
+    private var lastFrameTime: CFTimeInterval = 0.0
 
-    init(metalView: MTKView) {
+    static var world: World = .init()
+
+    static var gameState: GameState = .ready
+
+    init(metalView: MTKView, initialWindowSize: WindowSize) {
+        self.metalView = metalView
         guard
             let device = MTLCreateSystemDefaultDevice(),
             let commandQueue = device.makeCommandQueue()
@@ -34,6 +35,7 @@ class Renderer: NSObject {
         Self.device = device
         Self.commandQueue = commandQueue
         metalView.device = device
+        metalView.colorPixelFormat = .bgra8Unorm_srgb
 
         guard let library = device.makeDefaultLibrary() else {
             fatalError("Unable to create default library")
@@ -46,16 +48,17 @@ class Renderer: NSObject {
             fatalError("Shaders not found")
         }
 
-        let pipelineDescriptor = MTLRenderPipelineDescriptor()
-        pipelineDescriptor.vertexFunction = vertexFunc
-        pipelineDescriptor.fragmentFunction = fragmentFunc
-        pipelineDescriptor
-            .colorAttachments[0].pixelFormat = metalView.colorPixelFormat
-        pipelineDescriptor.vertexDescriptor = .defaultDesc
+        Renderer.windowSize = initialWindowSize
+
+        super.init()
+        metalView.delegate = self
 
         do {
             renderState = try device.makeRenderPipelineState(
-                descriptor: pipelineDescriptor
+                descriptor: makePipelineDescriptor(
+                    vertexFunc: vertexFunc,
+                    fragmentFunc: fragmentFunc
+                )
             )
         } catch {
             fatalError(
@@ -63,13 +66,7 @@ class Renderer: NSObject {
             )
         }
 
-        quad = Quad()
-
-        super.init()
-        metalView.delegate = self
         mtkView(metalView, drawableSizeWillChange: metalView.drawableSize)
-
-        instances.reserveCapacity(maxInstances)
 
         metalView.clearColor = MTLClearColor(
             red: 0.2,
@@ -79,55 +76,60 @@ class Renderer: NSObject {
         )
     }
 
-    private func seedInstances(for size: CGSize) {
-        instances.removeAll(keepingCapacity: true)
+    func makePipelineDescriptor(vertexFunc: MTLFunction, fragmentFunc: MTLFunction) -> MTLRenderPipelineDescriptor {
+        let pipelineDescriptor = MTLRenderPipelineDescriptor()
+        pipelineDescriptor.vertexFunction = vertexFunc
+        pipelineDescriptor.fragmentFunction = fragmentFunc
+        if let attachment = pipelineDescriptor.colorAttachments[0] {
+            attachment.pixelFormat = metalView.colorPixelFormat
+            attachment.isBlendingEnabled = true
+            attachment.sourceRGBBlendFactor = .sourceAlpha
+            attachment.destinationRGBBlendFactor = .oneMinusSourceAlpha
 
-        let width = Float(size.width)
-        let height = Float(size.height)
+            attachment.sourceAlphaBlendFactor = .one
+            attachment.destinationAlphaBlendFactor = .zero
 
-        func rand(_ min: Float, _ max: Float) -> Float { Float.random(in: min ... max) }
-
-        for _ in 0 ..< maxInstances {
-            let size = SIMD2<Float>(rand(48, 96), rand(48, 96))
-            let half = size * 0.5
-            // Center-anchored: keep fully on-screen
-            let posX = rand(half.x, max(half.x, width - half.x))
-            let posY = rand(half.y, max(half.y, height - half.y))
-            let angle = rand(0, .pi * 2)
-
-            instances.append(SpriteInstance(
-                pos: SIMD2(posX, posY),
-                size: size,
-                cosTheta: cos(angle),
-                sinTheta: sin(angle),
-                z: 0,
-            ))
+            attachment.rgbBlendOperation = .add
+            attachment.alphaBlendOperation = .add
         }
+        pipelineDescriptor.vertexDescriptor = .defaultDesc
+
+        return pipelineDescriptor
     }
 }
 
 extension Renderer: MTKViewDelegate {
     func mtkView(_: MTKView, drawableSizeWillChange size: CGSize) {
-        windowSize.width = UInt32(size.width)
-        windowSize.height = UInt32(size.height)
+        Renderer.windowSize.width = UInt32(size.width)
+        Renderer.windowSize.height = UInt32(size.height)
 
-        frameUniforms.proj = float4x4.ortho(
+        Renderer.proj = float4x4.ortho(
             left: 0,
-            right: Float(windowSize.width),
-            bottom: Float(windowSize.height),
+            right: Float(Renderer.windowSize.width),
+            bottom: Float(Renderer.windowSize.height),
             top: 0,
             near: 0,
             far: 1
         )
 
-        if !seeded, size.width > 0, size.height > 0 {
-            seedInstances(for: size)
-            seeded = true
-        }
+        World.ground.updateScreenSize(size)
+        World.bird.updateScreenSize(size)
+    }
+
+    func update(_ deltaTime: Float) {
+        Renderer.world.update(deltaTime)
     }
 
     func draw(in view: MTKView) {
-        guard seeded else { return }
+        let currentTime = CACurrentMediaTime()
+
+        if lastFrameTime == 0.0 {
+            lastFrameTime = currentTime
+        }
+        let deltaTime = currentTime - lastFrameTime
+        lastFrameTime = currentTime
+
+        update(Float(deltaTime))
 
         guard
             let commandBuffer = Self.commandQueue.makeCommandBuffer(),
@@ -140,13 +142,7 @@ extension Renderer: MTKViewDelegate {
         }
         renderEncoder.setRenderPipelineState(renderState)
 
-        quad
-            .draw(
-                renderEncoder: renderEncoder,
-                instances: instances,
-                proj: frameUniforms
-                    .proj
-            )
+        Renderer.world.draw(renderEncoder: renderEncoder)
 
         renderEncoder.endEncoding()
 
