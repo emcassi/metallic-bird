@@ -8,7 +8,8 @@
 import MetalKit
 
 class Renderer: NSObject {
-    private let metalView: MTKView
+    private var metalView: MTKView!
+    static var safeAreaInsets: UIEdgeInsets!
 
     static var windowSize = WindowSize()
     static var device: MTLDevice!
@@ -81,7 +82,7 @@ class Renderer: NSObject {
         pipelineDescriptor.vertexFunction = vertexFunc
         pipelineDescriptor.fragmentFunction = fragmentFunc
         if let attachment = pipelineDescriptor.colorAttachments[0] {
-            attachment.pixelFormat = metalView.colorPixelFormat
+            attachment.pixelFormat = self.metalView.colorPixelFormat
             attachment.isBlendingEnabled = true
             attachment.sourceRGBBlendFactor = .sourceAlpha
             attachment.destinationRGBBlendFactor = .oneMinusSourceAlpha
@@ -102,6 +103,7 @@ extension Renderer: MTKViewDelegate {
     func mtkView(_: MTKView, drawableSizeWillChange size: CGSize) {
         Renderer.windowSize.width = UInt32(size.width)
         Renderer.windowSize.height = UInt32(size.height)
+        Renderer.safeAreaInsets = UIApplication.shared.windows.first(where: { $0.isKeyWindow })?.safeAreaInsets ?? .zero
 
         Renderer.proj = float4x4.ortho(
             left: 0,

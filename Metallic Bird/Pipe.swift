@@ -20,7 +20,9 @@ class Pipe: GameObject {
         let gapMinY: Float = 400
         let gapMaxY = Float(screenSize.height - 1400)
         let gapStart = Float.random(in: gapMinY ... gapMaxY)
-        let gapHeight = Float.random(in: 550 ... 700)
+        let gapHeightMin: Float = 450
+        let gapHeightMax: Float = 550
+        let gapHeight = Float.random(in: gapHeightMin ... gapHeightMax)
         let topPipeY = gapStart - size.y * scale
         let bottomPipeY = gapStart + gapHeight
 
