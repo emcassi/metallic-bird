@@ -7,8 +7,17 @@
 
 import MetalKit
 
+enum BirdTexture: String {
+    case base = "bird"
+    case flapUp = "bird-flap-up"
+    case flapDown = "bird-flap-down"
+}
+
 class Bird: GameObject {
-    let textureName = "bird"
+    let baseTexture: BirdTexture = .base
+    let flapUpTexture: BirdTexture = .flapUp
+    let flapDownTexture: BirdTexture = .flapDown
+    var currentTexture: BirdTexture
 
     var startPos: Vector2 = .zero
 
@@ -23,7 +32,8 @@ class Bird: GameObject {
     var isDead: Bool = false
 
     init() {
-        super.init(textureName: textureName)
+        self.currentTexture = baseTexture
+        super.init(textureName: currentTexture.rawValue)
 
         let transform = Transform2D(
             position: startPos,
@@ -49,10 +59,13 @@ class Bird: GameObject {
 
         if velocity.y > 50 {
             transform.angle = Float.lerp(transform.angle, -tiltAngle, 0.3)
+            setTexture(.flapUp)
         } else if velocity.y < -50 {
             transform.angle = Float.lerp(transform.angle, tiltAngle, 0.3)
+            setTexture(.flapDown)
         } else {
             transform.angle = Float.lerp(transform.angle, 0, 0.3)
+            setTexture(.base)
         }
 
         velocity.y += gravity
@@ -79,6 +92,12 @@ class Bird: GameObject {
         startPos = Vector2(x: size.x / 4, y: size.y / 2)
         minY = Float(Renderer.safeAreaInsets.top) + transform.size.y * transform.scale
         maxY = Ground.groundY - transform.size.y * transform.scale * 3 / 4
+    }
+
+    func setTexture(_ texture: BirdTexture) {
+        if texture != currentTexture {
+            sprite?.setTexture(name: texture.rawValue, type: BaseColor)
+        }
     }
 
     func onTap() {

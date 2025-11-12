@@ -23,6 +23,10 @@ class GameObject {
         }
     }
 
+    func setTexture(name: String, type: TextureIndices) {
+        sprite?.setTexture(name: name, type: type)
+    }
+
     func addChild(name: String, object: GameObject) {
         object.parent = self
         children[name] = object
