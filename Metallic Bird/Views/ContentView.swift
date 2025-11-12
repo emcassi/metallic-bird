@@ -8,21 +8,26 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var tapped = false
+    @State private var canTap = true
 
     var tap: some Gesture {
-        TapGesture(count: 1)
+        DragGesture(minimumDistance: 0.0, coordinateSpace: .global)
+            .onChanged { _ in
+                if canTap {
+                    InputController.taps += 1
+                }
+                canTap = false
+            }
+
             .onEnded { _ in
-                self.tapped = !self.tapped
+                canTap = true
             }
     }
 
     var body: some View {
         MetalView()
-            .onTapGesture(count: 1) {
-                InputController.taps += 1
-            }
             .ignoresSafeArea()
+            .gesture(tap)
     }
 }
 
