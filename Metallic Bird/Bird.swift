@@ -41,7 +41,7 @@ class Bird: GameObject {
         if Renderer.gameState == .ready {
             transform.position = startPos
             return
-        } else if Renderer.gameState == .gameOver && !isDead {
+        } else if Renderer.gameState == .gameOver, !isDead {
             die()
         }
 
