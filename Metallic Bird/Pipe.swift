@@ -64,7 +64,7 @@ class Pipe: GameObject {
             transform: bottomTransform,
             other: bird.transform
         ) {
-            Renderer.gameState = .gameOver
+            Renderer.gameState = .dying
         } else {}
     }
 
