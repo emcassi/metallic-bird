@@ -22,6 +22,7 @@ class Renderer: NSObject {
     private var lastFrameTime: CFTimeInterval = 0.0
 
     static var world: World = .init()
+    static var soundboard: Soundboard = .init()
 
     static var gameState: GameState = .ready
 
@@ -124,6 +125,7 @@ extension Renderer: MTKViewDelegate {
 
     func update(_ deltaTime: Float) {
         Renderer.world.update(deltaTime)
+        Renderer.soundboard.queueUpdate()
     }
 
     func draw(in view: MTKView) {

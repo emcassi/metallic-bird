@@ -29,7 +29,7 @@ class Ground: Treadmill {
             transform: transform
         )
 
-        self.updateScreenSize()
+        updateScreenSize()
     }
 
     func updateScreenSize() {

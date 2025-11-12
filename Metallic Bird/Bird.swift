@@ -29,10 +29,13 @@ class Bird: GameObject {
     var minY: Float!
     var maxY: Float!
 
+    let soundboard = Renderer.soundboard
+
     var isDead: Bool = false
+    var isDeathFall: Bool = false
 
     init() {
-        self.currentTexture = baseTexture
+        currentTexture = baseTexture
         super.init(textureName: currentTexture.rawValue)
 
         let transform = Transform2D(
@@ -42,7 +45,7 @@ class Bird: GameObject {
             scale: 4
         )
         self.transform = transform
-        self.updateScreenSize()
+        updateScreenSize()
         self.transform.position = startPos
     }
 
@@ -74,15 +77,24 @@ class Bird: GameObject {
 
         if transform.position.y <= minY {
             transform.position.y = minY
-            die()
-            return
+            if !isDead {
+                die()
+            }
         }
 
         if transform.position.y >= maxY {
             transform.position.y = maxY
             transform.angle = -tiltAngle
-            die()
+            if !isDead {
+                die()
+            }
+
+            Renderer.gameState = .gameOver
             return
+        }
+
+        if isDead {
+            deathFall()
         }
     }
 
@@ -104,18 +116,33 @@ class Bird: GameObject {
         switch Renderer.gameState {
         case .ready:
             Renderer.gameState = .playing
-            velocity.y = jumpForce
+            flap()
         case .playing:
-            velocity.y = jumpForce
+            flap()
+        case .dying:
+            break
         case .gameOver:
             Renderer.world.reset()
         }
         InputController.taps -= 1
     }
 
+    func flap() {
+        velocity.y = jumpForce
+        soundboard.play(sfx: .flap)
+    }
+
     func die() {
-        Renderer.gameState = .gameOver
+        Renderer.gameState = .dying
         velocity = .zero
         isDead = true
+        soundboard.addToQueue(sfx: .hit)
+    }
+
+    func deathFall() {
+        if !isDeathFall {
+            isDeathFall = true
+            soundboard.addToQueue(sfx: .die)
+        }
     }
 }
