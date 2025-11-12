@@ -31,7 +31,7 @@ class Soundboard {
         let session = AVAudioSession.sharedInstance()
         do {
             try session.setCategory(.ambient, options: [.mixWithOthers])
-            try session.setPreferredSampleRate(44_100) // 44.1 kHz Sample Rate
+            try session.setPreferredSampleRate(44100) // 44.1 kHz Sample Rate
             try session.setPreferredIOBufferDuration(0.0058) // ~256 frames @ 48kHz (~5.8ms)
             try session.setActive(true)
         } catch {
