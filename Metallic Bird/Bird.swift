@@ -20,6 +20,8 @@ class Bird: GameObject {
     var minY: Float!
     var maxY: Float!
 
+    var isDead: Bool = false
+
     init() {
         let transform = Transform2D(
             position: startPos,
@@ -39,6 +41,8 @@ class Bird: GameObject {
         if Renderer.gameState == .ready {
             transform.position = startPos
             return
+        } else if Renderer.gameState == .gameOver && !isDead {
+            die()
         }
 
         if velocity.y > 50 {
@@ -51,15 +55,13 @@ class Bird: GameObject {
 
         if transform.position.y <= minY {
             transform.position.y = minY
-            velocity = .zero
-            Renderer.gameState = .gameOver
+            die()
         }
 
         if transform.position.y >= maxY {
             transform.position.y = maxY
-            velocity = .zero
             transform.angle = -tiltAngle
-            Renderer.gameState = .gameOver
+            die()
         }
 
         velocity.y += gravity
@@ -84,5 +86,11 @@ class Bird: GameObject {
             break
         }
         InputController.taps -= 1
+    }
+
+    func die() {
+        Renderer.gameState = .gameOver
+        velocity = .zero
+        isDead = true
     }
 }
