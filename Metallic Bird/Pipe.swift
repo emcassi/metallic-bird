@@ -52,7 +52,8 @@ class Pipe: GameObject {
     func checkCollision() {
         guard let topPipe = child(name: "topPipe"),
               let bottomPipe = child(name: "bottomPipe"),
-              let bird = Renderer.world.child(name: "bird") else {
+              let bird = Renderer.world.child(name: "bird")
+        else {
             return
         }
 
@@ -64,8 +65,7 @@ class Pipe: GameObject {
             other: bird.transform
         ) {
             Renderer.gameState = .gameOver
-        } else {
-        }
+        } else {}
     }
 
     func aabb(transform: Transform2D, other: Transform2D) -> Bool {
@@ -77,8 +77,8 @@ class Pipe: GameObject {
 
         return transform.position.x < other.position.x + bWidth &&
             transform.position.x + aWidth > other.position.x &&
-                transform.position.y < other.position.y + bHeight &&
-                transform.position.y + aHeight > other.position.y
+            transform.position.y < other.position.y + bHeight &&
+            transform.position.y + aHeight > other.position.y
     }
 
     override func update(_ deltaTime: Float, parent: GameObject? = nil) {
