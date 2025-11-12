@@ -45,12 +45,45 @@ class Pipe: GameObject {
 
         velocity.x = scrollSpeed
 
-        addChild(name: "top", object: topPipe)
-        addChild(name: "bottom", object: bottomPipe)
+        addChild(name: "topPipe", object: topPipe)
+        addChild(name: "bottomPipe", object: bottomPipe)
     }
 
-    func update(_ deltaTime: Float) {
-        super.update(deltaTime)
+    func checkCollision() {
+        guard let topPipe = child(name: "topPipe"),
+              let bottomPipe = child(name: "bottomPipe"),
+              let bird = Renderer.world.child(name: "bird") else {
+            return
+        }
+
+        let topTransform = topPipe.applyParentTransform()
+        let bottomTransform = bottomPipe.applyParentTransform()
+
+        if aabb(transform: topTransform, other: bird.transform) || aabb(
+            transform: bottomTransform,
+            other: bird.transform
+        ) {
+            Renderer.gameState = .gameOver
+        } else {
+        }
+    }
+
+    func aabb(transform: Transform2D, other: Transform2D) -> Bool {
+        let aWidth = transform.size.x * other.scale
+        let aHeight = transform.size.y * other.scale
+
+        let bWidth = other.size.x * other.scale
+        let bHeight = other.size.y * other.scale
+
+        return transform.position.x < other.position.x + bWidth &&
+            transform.position.x + aWidth > other.position.x &&
+                transform.position.y < other.position.y + bHeight &&
+                transform.position.y + aHeight > other.position.y
+    }
+
+    override func update(_ deltaTime: Float, parent: GameObject? = nil) {
+        checkCollision()
+        super.update(deltaTime, parent: parent)
     }
 
     func shouldDelete() -> Bool {
