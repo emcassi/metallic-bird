@@ -23,15 +23,17 @@ class Bird: GameObject {
     var isDead: Bool = false
 
     init() {
+        super.init(textureName: textureName)
+
         let transform = Transform2D(
             position: startPos,
             angle: 0,
             size: Vector2(x: 34, y: 24),
             scale: 4
         )
-
-        super.init(textureName: textureName)
         self.transform = transform
+        self.updateScreenSize()
+        self.transform.position = startPos
     }
 
     override func update(_ deltaTime: Float, parent _: GameObject? = nil) {
@@ -53,26 +55,30 @@ class Bird: GameObject {
             transform.angle = Float.lerp(transform.angle, 0, 0.3)
         }
 
+        velocity.y += gravity
+
+        super.update(deltaTime, parent: parent)
+
         if transform.position.y <= minY {
             transform.position.y = minY
             die()
+            return
         }
 
         if transform.position.y >= maxY {
             transform.position.y = maxY
             transform.angle = -tiltAngle
             die()
+            return
         }
-
-        velocity.y += gravity
-
-        super.update(deltaTime, parent: parent)
     }
 
-    func updateScreenSize(_ size: CGSize) {
-        startPos = Vector2(x: Float(size.width) / 4, y: Float(size.height) / 2)
+    func updateScreenSize() {
+        let size = Vector2(x: Float(Renderer.windowSize.width), y: Float(Renderer.windowSize.height))
+
+        startPos = Vector2(x: size.x / 4, y: size.y / 2)
         minY = Float(Renderer.safeAreaInsets.top) + transform.size.y * transform.scale
-        maxY = Ground.groundY - transform.size.y * transform.scale * 5 / 8
+        maxY = Ground.groundY - transform.size.y * transform.scale * 3 / 4
     }
 
     func onTap() {
@@ -82,8 +88,8 @@ class Bird: GameObject {
             velocity.y = jumpForce
         case .playing:
             velocity.y = jumpForce
-        default:
-            break
+        case .gameOver:
+            Renderer.world.reset()
         }
         InputController.taps -= 1
     }

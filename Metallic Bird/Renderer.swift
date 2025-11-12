@@ -114,8 +114,12 @@ extension Renderer: MTKViewDelegate {
             far: 1
         )
 
-        World.ground.updateScreenSize(size)
-        World.bird.updateScreenSize(size)
+        if let ground = Renderer.world.child(name: "ground") as? Ground,
+           let bird = Renderer.world.child(name: "bird") as? Bird
+        {
+            ground.updateScreenSize()
+            bird.updateScreenSize()
+        }
     }
 
     func update(_ deltaTime: Float) {
