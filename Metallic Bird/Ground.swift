@@ -28,10 +28,12 @@ class Ground: Treadmill {
             textureName: textureName,
             transform: transform
         )
+
+        updateScreenSize()
     }
 
-    func updateScreenSize(_ screenSize: CGSize) {
-        Ground.groundY = Float(screenSize.height) - size.y * scale
+    func updateScreenSize() {
+        Ground.groundY = Float(Renderer.windowSize.height) - size.y * scale
 
         let ground1 = child(name: "\(baseName)1")
         let ground2 = child(name: "\(baseName)2")

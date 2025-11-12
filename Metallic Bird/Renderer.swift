@@ -22,6 +22,7 @@ class Renderer: NSObject {
     private var lastFrameTime: CFTimeInterval = 0.0
 
     static var world: World = .init()
+    static var soundboard: Soundboard = .init()
 
     static var gameState: GameState = .ready
 
@@ -114,12 +115,17 @@ extension Renderer: MTKViewDelegate {
             far: 1
         )
 
-        World.ground.updateScreenSize(size)
-        World.bird.updateScreenSize(size)
+        if let ground = Renderer.world.child(name: "ground") as? Ground,
+           let bird = Renderer.world.child(name: "bird") as? Bird
+        {
+            ground.updateScreenSize()
+            bird.updateScreenSize()
+        }
     }
 
     func update(_ deltaTime: Float) {
         Renderer.world.update(deltaTime)
+        Renderer.soundboard.queueUpdate()
     }
 
     func draw(in view: MTKView) {

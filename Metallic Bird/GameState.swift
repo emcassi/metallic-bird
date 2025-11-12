@@ -8,5 +8,6 @@
 enum GameState {
     case ready
     case playing
+    case dying
     case gameOver
 }
