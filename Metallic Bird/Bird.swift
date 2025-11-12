@@ -19,7 +19,7 @@ class Bird: GameObject {
     let flapDownTexture: BirdTexture = .flapDown
     var currentTexture: BirdTexture
 
-    var startPos: Vector2 = .zero
+    static var startPos: Vector2 = .zero
 
     let gravity: Float = 30
     let jumpForce: Float = -1100
@@ -39,14 +39,14 @@ class Bird: GameObject {
         super.init(textureName: currentTexture.rawValue)
 
         let transform = Transform2D(
-            position: startPos,
+            position: Bird.startPos,
             angle: 0,
             size: Vector2(x: 34, y: 24),
             scale: 4
         )
         self.transform = transform
         updateScreenSize()
-        self.transform.position = startPos
+        self.transform.position = Bird.startPos
     }
 
     override func update(_ deltaTime: Float, parent _: GameObject? = nil) {
@@ -54,7 +54,7 @@ class Bird: GameObject {
             onTap()
         }
         if Renderer.gameState == .ready {
-            transform.position = startPos
+            transform.position = Bird.startPos
             return
         } else if Renderer.gameState == .dying, !isDead {
             die()
@@ -101,7 +101,7 @@ class Bird: GameObject {
     func updateScreenSize() {
         let size = Vector2(x: Float(Renderer.windowSize.width), y: Float(Renderer.windowSize.height))
 
-        startPos = Vector2(x: size.x / 4, y: size.y / 2)
+        Bird.startPos = Vector2(x: size.x / 4, y: size.y / 2)
         minY = Float(Renderer.safeAreaInsets.top) + transform.size.y * transform.scale
         maxY = Ground.groundY - transform.size.y * transform.scale * 3 / 4
     }

@@ -9,18 +9,21 @@ import AVFoundation
 
 enum SFXPath: String {
     case flap = "wing.wav"
+    case score = "point.wav"
     case hit = "hit.wav"
     case die = "die.wav"
 }
 
 enum SFX {
     case flap
+    case score
     case hit
     case die
 }
 
 class Soundboard {
     var flapSFX: AVAudioPlayer?
+    var scoreSFX: AVAudioPlayer?
     var hitSFX: AVAudioPlayer?
     var dieSFX: AVAudioPlayer?
 
@@ -39,6 +42,7 @@ class Soundboard {
         }
 
         flapSFX = loadSFX(path: .flap)
+        scoreSFX = loadSFX(path: .score)
         hitSFX = loadSFX(path: .hit)
         dieSFX = loadSFX(path: .die)
     }
@@ -65,6 +69,8 @@ class Soundboard {
         switch sfx {
         case .flap:
             player = flapSFX
+        case .score:
+            player = scoreSFX
         case .hit:
             player = hitSFX
         case .die:
@@ -82,6 +88,8 @@ class Soundboard {
         switch sfx {
         case .flap:
             return flapSFX?.isPlaying ?? false
+        case .score:
+            return scoreSFX?.isPlaying ?? false
         case .hit:
             return flapSFX?.isPlaying ?? false
         case .die:
