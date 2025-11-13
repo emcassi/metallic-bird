@@ -14,10 +14,8 @@ enum BirdTexture: String {
 }
 
 class Bird: GameObject {
-    let baseTexture: BirdTexture = .base
-    let flapUpTexture: BirdTexture = .flapUp
-    let flapDownTexture: BirdTexture = .flapDown
-    var currentTexture: BirdTexture
+    var textures: [BirdTexture] = [.base, .flapDown, .base, .flapUp]
+    var currentTexture: Int = 0
 
     static var startPos: Vector2 = .zero
 
@@ -29,14 +27,18 @@ class Bird: GameObject {
     var minY: Float!
     var maxY: Float!
 
+    let animationReadyDelay: Float = 0.15
+    let animationGameDelay: Float = 0.075
+    var animationTimer: Float
+
     let soundboard = Renderer.soundboard
 
     var isDead: Bool = false
     var isDeathFall: Bool = false
 
     init() {
-        currentTexture = baseTexture
-        super.init(textureName: currentTexture.rawValue)
+        animationTimer = animationReadyDelay
+        super.init(textureName: self.textures[currentTexture].rawValue)
 
         let transform = Transform2D(
             position: Bird.startPos,
@@ -55,6 +57,7 @@ class Bird: GameObject {
         }
         if Renderer.gameState == .ready {
             transform.position = Bird.startPos
+            handleAnimation(deltaTime)
             return
         } else if Renderer.gameState == .dying, !isDead {
             die()
@@ -62,13 +65,10 @@ class Bird: GameObject {
 
         if velocity.y > 50 {
             transform.angle = Float.lerp(transform.angle, -tiltAngle, 0.3)
-            setTexture(.flapUp)
         } else if velocity.y < -50 {
             transform.angle = Float.lerp(transform.angle, tiltAngle, 0.3)
-            setTexture(.flapDown)
         } else {
             transform.angle = Float.lerp(transform.angle, 0, 0.3)
-            setTexture(.base)
         }
 
         velocity.y += gravity
@@ -95,6 +95,24 @@ class Bird: GameObject {
 
         if isDead {
             deathFall()
+        } else {
+            handleAnimation(deltaTime)
+        }
+    }
+
+    func handleAnimation(_ deltaTime: Float) {
+        animationTimer -= deltaTime
+        if animationTimer <= 0 {
+            currentTexture += 1
+            if currentTexture >= textures.count {
+                currentTexture = 0
+            }
+            sprite?.setTexture(name: textures[currentTexture].rawValue, type: BaseColor)
+            if Renderer.gameState == .ready {
+                animationTimer = animationReadyDelay
+            } else {
+                animationTimer = animationGameDelay
+            }
         }
     }
 
@@ -105,12 +123,12 @@ class Bird: GameObject {
         minY = Float(Renderer.safeAreaInsets.top) + transform.size.y * transform.scale
         maxY = Ground.groundY - transform.size.y * transform.scale * 3 / 4
     }
-
-    func setTexture(_ texture: BirdTexture) {
-        if texture != currentTexture {
-            sprite?.setTexture(name: texture.rawValue, type: BaseColor)
-        }
-    }
+//
+//    func setTexture(_ texture: BirdTexture) {
+//        if texture != currentTexture {
+//            sprite?.setTexture(name: texture.rawValue, type: BaseColor)
+//        }
+//    }
 
     func onTap() {
         switch Renderer.gameState {
