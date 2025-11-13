@@ -116,10 +116,12 @@ extension Renderer: MTKViewDelegate {
         )
 
         if let ground = Renderer.world.child(name: "ground") as? Ground,
-           let bird = Renderer.world.child(name: "bird") as? Bird
+           let bird = Renderer.world.child(name: "bird") as? Bird,
+           let scoreLabel = Renderer.world.child(name: "scoreLabel") as? ScoreLabel
         {
             ground.updateScreenSize()
             bird.updateScreenSize()
+            scoreLabel.updateScreenSize()
         }
     }
 

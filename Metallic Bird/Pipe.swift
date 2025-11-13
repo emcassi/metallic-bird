@@ -16,12 +16,14 @@ class Pipe: GameObject {
 
     let scrollSpeed: Float = -800
 
+    var hasScored: Bool = false
+
     init() {
         let gapMinY: Float = 400
         let gapMaxY = Float(screenSize.height - 1400)
         let gapStart = Float.random(in: gapMinY ... gapMaxY)
-        let gapHeightMin: Float = 475
-        let gapHeightMax: Float = 550
+        let gapHeightMin: Float = 470
+        let gapHeightMax: Float = 530
         let gapHeight = Float.random(in: gapHeightMin ... gapHeightMax)
         let topPipeY = gapStart - size.y * scale
         let bottomPipeY = gapStart + gapHeight
@@ -82,6 +84,10 @@ class Pipe: GameObject {
     }
 
     override func update(_ deltaTime: Float, parent: GameObject? = nil) {
+        if !hasScored, transform.position.x < Bird.startPos.x {
+            hasScored = true
+            ScoreController.increment()
+        }
         checkCollision()
         super.update(deltaTime, parent: parent)
     }
