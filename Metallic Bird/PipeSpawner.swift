@@ -9,7 +9,7 @@ import Metal
 
 class PipeSpawner: GameObject {
     var pipes: [String] = []
-    let spawnDelay: Float = 1.25
+    let spawnDelay: Float = 1.1
     var spawnTimer: Float
 
     init() {
