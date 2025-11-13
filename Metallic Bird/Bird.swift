@@ -19,8 +19,8 @@ class Bird: GameObject {
 
     static var startPos: Vector2 = .zero
 
-    let gravity: Float = 40
-    let jumpForce: Float = -925
+    let gravity: Float = 50
+    let jumpForce: Float = -950
 
     let tiltAngle = Float.pi / 4
 
