@@ -21,8 +21,12 @@ typedef struct {
 
 typedef struct {
     simd_float2 position;
-    simd_float2 uv;
 } Vertex;
+
+typedef struct {
+    simd_float2 position;
+    simd_float2 uv;
+} UVVertex;
 
 typedef enum {
     Position = 0,
