@@ -16,30 +16,37 @@ enum BirdTexture: String {
 class Bird: GameObject {
     var textures: [BirdTexture] = [.base, .flapDown, .base, .flapUp]
     var currentTexture: Int = 0
-
+    
     static var startPos: Vector2 = .zero
-
+    
     let gravity: Float = 50
     let jumpForce: Float = -950
-
+    
     let tiltAngle = Float.pi / 4
-
+    
     var minY: Float!
     var maxY: Float!
-
+    
     let animationReadyDelay: Float = 0.15
     let animationGameDelay: Float = 0.075
     var animationTimer: Float
-
+    
     let soundboard = Renderer.soundboard
-
+    
     var isDead: Bool = false
     var isDeathFall: Bool = false
-
+    
+#if !DEBUG
+    let feedback: UIImpactFeedbackGenerator!
+#endif
+    
     init() {
         animationTimer = animationReadyDelay
+#if !DEBUG
+        feedback = UIImpactFeedbackGenerator(view: Renderer.metalView)
+#endif
         super.init(textureName: self.textures[currentTexture].rawValue)
-
+        
         let transform = Transform2D(
             position: Bird.startPos,
             angle: 0,
@@ -49,8 +56,11 @@ class Bird: GameObject {
         self.transform = transform
         updateScreenSize()
         self.transform.position = Bird.startPos
+#if !DEBUG
+        feedback.prepare()
+#endif
     }
-
+    
     override func update(_ deltaTime: Float, parent _: GameObject? = nil) {
         if InputController.taps > 0 {
             onTap()
@@ -62,7 +72,7 @@ class Bird: GameObject {
         } else if Renderer.gameState == .dying, !isDead {
             die()
         }
-
+        
         if velocity.y > 50 {
             transform.angle = Float.lerp(transform.angle, -tiltAngle, 0.3)
         } else if velocity.y < -50 {
@@ -70,36 +80,36 @@ class Bird: GameObject {
         } else {
             transform.angle = Float.lerp(transform.angle, 0, 0.3)
         }
-
+        
         velocity.y += gravity
-
+        
         super.update(deltaTime, parent: parent)
-
+        
         if transform.position.y <= minY {
             transform.position.y = minY
             if !isDead {
                 die()
             }
         }
-
+        
         if transform.position.y >= maxY {
             transform.position.y = maxY
             transform.angle = -tiltAngle
             if !isDead {
                 die()
             }
-
+            
             Renderer.gameState = .gameOver
             return
         }
-
+        
         if isDead {
             deathFall()
         } else {
             handleAnimation(deltaTime)
         }
     }
-
+    
     func handleAnimation(_ deltaTime: Float) {
         animationTimer -= deltaTime
         if animationTimer <= 0 {
@@ -115,21 +125,21 @@ class Bird: GameObject {
             }
         }
     }
-
+    
     func updateScreenSize() {
         let size = Vector2(x: Float(Renderer.windowSize.width), y: Float(Renderer.windowSize.height))
-
+        
         Bird.startPos = Vector2(x: size.x / 4, y: size.y / 2)
         minY = Float(Renderer.safeAreaInsets.top) + transform.size.y * transform.scale
         maxY = Ground.groundY - transform.size.y * transform.scale * 3 / 4
     }
-//
-//    func setTexture(_ texture: BirdTexture) {
-//        if texture != currentTexture {
-//            sprite?.setTexture(name: texture.rawValue, type: BaseColor)
-//        }
-//    }
-
+    //
+    //    func setTexture(_ texture: BirdTexture) {
+    //        if texture != currentTexture {
+    //            sprite?.setTexture(name: texture.rawValue, type: BaseColor)
+    //        }
+    //    }
+    
     func onTap() {
         switch Renderer.gameState {
         case .ready:
@@ -144,19 +154,27 @@ class Bird: GameObject {
         }
         InputController.taps -= 1
     }
-
+    
     func flap() {
         velocity.y = jumpForce
+#if !DEBUG
+        feedback.impactOccurred(intensity: 0.5)
+#endif
         soundboard.play(sfx: .flap)
     }
-
+    
     func die() {
-        Renderer.gameState = .dying
-        velocity = .zero
-        isDead = true
-        soundboard.addToQueue(sfx: .hit)
+        if !isDead {
+            Renderer.gameState = .dying
+            velocity = .zero
+            isDead = true
+            soundboard.addToQueue(sfx: .hit)
+#if !DEBUG
+            feedback.impactOccurred(intensity: 1)
+#endif
+        }
     }
-
+    
     func deathFall() {
         if !isDeathFall {
             isDeathFall = true

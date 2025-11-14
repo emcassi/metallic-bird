@@ -8,7 +8,7 @@
 import MetalKit
 
 class Renderer: NSObject {
-    private var metalView: MTKView!
+    static var metalView: MTKView!
     static var safeAreaInsets: UIEdgeInsets!
 
     static var windowSize = WindowSize()
@@ -27,7 +27,7 @@ class Renderer: NSObject {
     static var gameState: GameState = .ready
 
     init(metalView: MTKView, initialWindowSize: WindowSize) {
-        self.metalView = metalView
+        Renderer.metalView = metalView
         guard
             let device = MTLCreateSystemDefaultDevice(),
             let commandQueue = device.makeCommandQueue()
@@ -83,7 +83,7 @@ class Renderer: NSObject {
         pipelineDescriptor.vertexFunction = vertexFunc
         pipelineDescriptor.fragmentFunction = fragmentFunc
         if let attachment = pipelineDescriptor.colorAttachments[0] {
-            attachment.pixelFormat = metalView.colorPixelFormat
+            attachment.pixelFormat = Renderer.metalView.colorPixelFormat
             attachment.isBlendingEnabled = true
             attachment.sourceRGBBlendFactor = .sourceAlpha
             attachment.destinationRGBBlendFactor = .oneMinusSourceAlpha
