@@ -10,20 +10,16 @@
 #include "ShaderStructs.metal"
 using namespace metal;
 
-//struct VSIn {
-//    float2 corner [[attribute(0)]];   // unit quad corners (-0.5..0.5)
-//};
-//
 struct VSOut {
     float4 pos [[position]];
 };
 
 vertex RastData vertex_main(
-                        const device Vertex* vertices [[buffer(0)]],
+                        const device UVVertex* vertices [[buffer(0)]],
                         unsigned int vertexId [[vertex_id]],
                         constant FrameUniforms &u [[buffer(11)]]
                         ) {
-    Vertex v = vertices[vertexId];
+    UVVertex v = vertices[vertexId];
     float4 transformed = u.transform * float4(v.position, 1, 1);
 
     RastData out {
@@ -33,18 +29,18 @@ vertex RastData vertex_main(
 
     return out;
 }
-//vertex RastData vertex_main(
-//                            const device Vertex* vertices [[buffer(0)]],
-//                            unsigned int vertexId [[vertex_id]],
-//                            constant FrameUniforms &u [[buffer(11)]]
-//                            ) {
-//    Vertex in = vertices[vertexId];
-//    float4 transformed = u.transform * float4(in.position, 1, 1);
-//
-//    RastData out {
-//        .pos = transformed,
-//        .uv = in.uv
-//    };
-//
-//    return out;
-//}
+
+vertex RastData vertex_death_flash(
+                                 const device Vertex* vertices [[buffer(0)]],
+                                 unsigned int vertexId [[vertex_id]]
+                                 ) {
+    Vertex v = vertices[vertexId];
+
+    RastData out = {
+        .pos = float4(v.position, 1, 1),
+        .uv = v.position
+    };
+    
+    return out;
+}
+

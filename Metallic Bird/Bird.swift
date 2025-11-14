@@ -169,6 +169,7 @@ class Bird: GameObject {
             velocity = .zero
             isDead = true
             soundboard.addToQueue(sfx: .hit)
+            Renderer.deathFlash.setActive()
 #if !DEBUG
             feedback.impactOccurred(intensity: 1)
 #endif

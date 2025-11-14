@@ -8,11 +8,11 @@
 import MetalKit
 
 class Sprite {
-    let vertices: [Vertex] = [
-        Vertex(position: SIMD2<Float>(0, 0), uv: SIMD2<Float>(0, 1)),
-        Vertex(position: SIMD2<Float>(1, 0), uv: SIMD2<Float>(1, 1)),
-        Vertex(position: SIMD2<Float>(0, 1), uv: SIMD2<Float>(0, 0)),
-        Vertex(position: SIMD2<Float>(1, 1), uv: SIMD2<Float>(1, 0)),
+    let vertices: [UVVertex] = [
+        UVVertex(position: SIMD2<Float>(0, 0), uv: SIMD2<Float>(0, 1)),
+        UVVertex(position: SIMD2<Float>(1, 0), uv: SIMD2<Float>(1, 1)),
+        UVVertex(position: SIMD2<Float>(0, 1), uv: SIMD2<Float>(0, 0)),
+        UVVertex(position: SIMD2<Float>(1, 1), uv: SIMD2<Float>(1, 0)),
     ]
 
     let vertexBuffer: MTLBuffer!
@@ -24,7 +24,7 @@ class Sprite {
         guard
             let vertexBuffer = Renderer.device.makeBuffer(
                 bytes: vertices,
-                length: MemoryLayout<Vertex>.stride * vertices.count,
+                length: MemoryLayout<UVVertex>.stride * vertices.count,
                 options: .storageModeShared
             )
         else {

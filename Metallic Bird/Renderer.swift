@@ -17,6 +17,7 @@ class Renderer: NSObject {
     static var library: MTLLibrary!
 
     private var renderState: MTLRenderPipelineState!
+    private var deathFlashRenderState: MTLRenderPipelineState!
     static var proj: float4x4!
     private var frameUniforms = FrameUniforms()
     private var lastFrameTime: CFTimeInterval = 0.0
@@ -25,6 +26,8 @@ class Renderer: NSObject {
     static var soundboard: Soundboard = .init()
 
     static var gameState: GameState = .ready
+
+    static let deathFlash: DeathFlash = .init()
 
     init(metalView: MTKView, initialWindowSize: WindowSize) {
         Renderer.metalView = metalView
@@ -44,8 +47,10 @@ class Renderer: NSObject {
         }
         Self.library = library
         guard
-            let vertexFunc = library.makeFunction(name: "vertex_main"),
-            let fragmentFunc = library.makeFunction(name: "fragment_main")
+            let mainVertexFunc = library.makeFunction(name: "vertex_main"),
+            let mainFragmentFunc = library.makeFunction(name: "fragment_main"),
+            let deathFlashVertexFunc = library.makeFunction(name: "vertex_death_flash"),
+            let deathFlashFragmentFunc = library.makeFunction(name: "fragment_death_flash")
         else {
             fatalError("Shaders not found")
         }
@@ -58,8 +63,21 @@ class Renderer: NSObject {
         do {
             renderState = try device.makeRenderPipelineState(
                 descriptor: makePipelineDescriptor(
-                    vertexFunc: vertexFunc,
-                    fragmentFunc: fragmentFunc
+                    vertexFunc: mainVertexFunc,
+                    fragmentFunc: mainFragmentFunc
+                )
+            )
+        } catch {
+            fatalError(
+                "Failed to create pipeline state: \(error.localizedDescription)"
+            )
+        }
+
+        do {
+            deathFlashRenderState = try device.makeRenderPipelineState(
+                descriptor: makePipelineDescriptor(
+                    vertexFunc: deathFlashVertexFunc,
+                    fragmentFunc: deathFlashFragmentFunc
                 )
             )
         } catch {
@@ -128,6 +146,7 @@ extension Renderer: MTKViewDelegate {
     func update(_ deltaTime: Float) {
         Renderer.world.update(deltaTime)
         Renderer.soundboard.queueUpdate()
+        Renderer.deathFlash.update(deltaTime)
     }
 
     func draw(in view: MTKView) {
@@ -151,8 +170,10 @@ extension Renderer: MTKViewDelegate {
             return
         }
         renderEncoder.setRenderPipelineState(renderState)
-
         Renderer.world.draw(renderEncoder: renderEncoder)
+
+        renderEncoder.setRenderPipelineState(deathFlashRenderState)
+        Renderer.deathFlash.draw(renderEncoder: renderEncoder)
 
         renderEncoder.endEncoding()
 
