@@ -16,8 +16,6 @@ class DeathFlash {
     ]
 
     let vertexBuffer: MTLBuffer!
-    var frameUniforms = FrameUniforms()
-    var transform: Transform2D = .init()
 
     var active: Bool = false
     let length: Float = 0.5
