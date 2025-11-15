@@ -6,3 +6,6 @@
 trailing_comma:
   severity: warning
   mandatory_comma: true
+
+disabled_rules:
+    - opening_brace

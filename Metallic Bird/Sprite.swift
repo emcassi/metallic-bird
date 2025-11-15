@@ -40,7 +40,7 @@ class Sprite {
     }
 
     func draw(renderEncoder: MTLRenderCommandEncoder) {
-        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: VertexBuffer.index)
 
         let centerTranslation = float4x4(
             translateX: transform.size.x * transform.scale / 2, translateY: transform.size.y * transform.scale / 2
@@ -51,7 +51,8 @@ class Sprite {
         )
         let rotation = float4x4(rotate: transform.angle)
         let scale = float4x4(scaleX: transform.size.x * transform.scale, scaleY: transform.size.y * transform.scale)
-        frameUniforms.transform = Renderer.proj * translation * centerTranslation * rotation * centerTranslation.inverse * scale
+        frameUniforms.transform = Renderer.proj * translation *
+            centerTranslation * rotation * centerTranslation.inverse * scale
 
         renderEncoder
             .setVertexBytes(
@@ -69,18 +70,12 @@ class Sprite {
             .drawPrimitives(
                 type: .triangleStrip,
                 vertexStart: 0,
-                vertexCount: vertices.count,
+                vertexCount: vertices.count
             )
     }
 }
 
 extension Buffers {
-    var index: Int {
-        Int(rawValue)
-    }
-}
-
-extension Attributes {
     var index: Int {
         Int(rawValue)
     }

@@ -24,7 +24,6 @@ enum TextureController {
             options: nil
         )
         if texture != nil {
-            print("loaded texture: \(name)")
             textures[name] = texture
         }
         return texture
