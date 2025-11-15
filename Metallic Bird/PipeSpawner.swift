@@ -18,7 +18,7 @@ class PipeSpawner: GameObject {
     }
 
     override func update(_ deltaTime: Float, parent _: GameObject? = nil) {
-        if Renderer.gameState != .playing {
+        if Game.gameState != .playing {
             return
         }
 

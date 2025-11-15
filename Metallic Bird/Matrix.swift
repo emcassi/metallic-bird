@@ -73,9 +73,4 @@ extension float4x4 {
         ))
         return matrix
     }
-
-    func multiply(vec: Vector2) -> SIMD4<Float> {
-        let vec4 = SIMD4(vec.x, vec.y, 0, 1)
-        return self * vec4
-    }
 }

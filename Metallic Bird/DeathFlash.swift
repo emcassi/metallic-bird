@@ -48,21 +48,21 @@ class DeathFlash {
     }
 
     func draw(renderEncoder: MTLRenderCommandEncoder) {
-        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
-        renderEncoder.setFragmentBytes(&opacity, length: MemoryLayout<Float>.stride, index: 11)
+        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: VertexBuffer.index)
+        renderEncoder.setFragmentBytes(&opacity, length: MemoryLayout<Float>.stride, index: UniformsBuffer.index)
 
         renderEncoder.setTriangleFillMode(.fill)
         renderEncoder
             .drawPrimitives(
                 type: .triangleStrip,
                 vertexStart: 0,
-                vertexCount: vertices.count,
+                vertexCount: vertices.count
             )
     }
 
     func setActive() {
         if active { return }
-        self.timer = self.length
+        timer = length
         active = true
     }
 }

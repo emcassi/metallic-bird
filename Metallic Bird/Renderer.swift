@@ -9,28 +9,36 @@ import MetalKit
 
 class Renderer: NSObject {
     static var metalView: MTKView!
-    static var safeAreaInsets: UIEdgeInsets!
 
     static var windowSize = WindowSize()
     static var device: MTLDevice!
-    static var commandQueue: MTLCommandQueue!
-    static var library: MTLLibrary!
+
+    private var commandQueue: MTLCommandQueue!
+    private var library: MTLLibrary!
+
+    private var mainVertexFunc: MTLFunction?
+    private var mainFragmentFunc: MTLFunction?
+    private var deathFlashVertexFunc: MTLFunction?
+    private var deathFlashFragmentFunc: MTLFunction?
+
+    static var proj: float4x4!
 
     private var renderState: MTLRenderPipelineState!
     private var deathFlashRenderState: MTLRenderPipelineState!
-    static var proj: float4x4!
-    private var frameUniforms = FrameUniforms()
+
     private var lastFrameTime: CFTimeInterval = 0.0
 
-    static var world: World = .init()
-    static var soundboard: Soundboard = .init()
+    private var clearColor: MTLClearColor = .init(
+        red: 0.2,
+        green: 0.2,
+        blue: 0.2,
+        alpha: 1
+    )
 
-    static var gameState: GameState = .ready
-
-    static let deathFlash: DeathFlash = .init()
+    private let game: Game
 
     init(metalView: MTKView, initialWindowSize: WindowSize) {
-        Renderer.metalView = metalView
+        Self.metalView = metalView
         guard
             let device = MTLCreateSystemDefaultDevice(),
             let commandQueue = device.makeCommandQueue()
@@ -38,33 +46,27 @@ class Renderer: NSObject {
             fatalError("GPU not available")
         }
         Self.device = device
-        Self.commandQueue = commandQueue
+        self.commandQueue = commandQueue
         metalView.device = device
         metalView.colorPixelFormat = .bgra8Unorm_srgb
 
-        guard let library = device.makeDefaultLibrary() else {
-            fatalError("Unable to create default library")
-        }
-        Self.library = library
-        guard
-            let mainVertexFunc = library.makeFunction(name: "vertex_main"),
-            let mainFragmentFunc = library.makeFunction(name: "fragment_main"),
-            let deathFlashVertexFunc = library.makeFunction(name: "vertex_death_flash"),
-            let deathFlashFragmentFunc = library.makeFunction(name: "fragment_death_flash")
-        else {
-            fatalError("Shaders not found")
-        }
+        Self.windowSize = initialWindowSize
 
-        Renderer.windowSize = initialWindowSize
+        game = Game(metalView: metalView)
 
         super.init()
         metalView.delegate = self
 
+        library = makeLibrary()
+
         do {
+            precondition(mainVertexFunc != nil, "main vertex shader not found")
+            precondition(mainFragmentFunc != nil, "main fragment shader not found")
+
             renderState = try device.makeRenderPipelineState(
                 descriptor: makePipelineDescriptor(
-                    vertexFunc: mainVertexFunc,
-                    fragmentFunc: mainFragmentFunc
+                    vertexFunc: mainVertexFunc!,
+                    fragmentFunc: mainFragmentFunc!
                 )
             )
         } catch {
@@ -74,10 +76,13 @@ class Renderer: NSObject {
         }
 
         do {
+            precondition(deathFlashVertexFunc != nil, "death flash vertex shader not found")
+            precondition(deathFlashFragmentFunc != nil, "death flash fragment shader not found")
+
             deathFlashRenderState = try device.makeRenderPipelineState(
                 descriptor: makePipelineDescriptor(
-                    vertexFunc: deathFlashVertexFunc,
-                    fragmentFunc: deathFlashFragmentFunc
+                    vertexFunc: deathFlashVertexFunc!,
+                    fragmentFunc: deathFlashFragmentFunc!
                 )
             )
         } catch {
@@ -88,12 +93,25 @@ class Renderer: NSObject {
 
         mtkView(metalView, drawableSizeWillChange: metalView.drawableSize)
 
-        metalView.clearColor = MTLClearColor(
-            red: 0.2,
-            green: 0.2,
-            blue: 0.2,
-            alpha: 1
-        )
+        metalView.clearColor = clearColor
+    }
+
+    func makeLibrary() -> MTLLibrary? {
+        let library = Self.device.makeDefaultLibrary()
+        guard
+            let library = library,
+            let mainVertexFunc = library.makeFunction(name: "vertex_main"),
+            let mainFragmentFunc = library.makeFunction(name: "fragment_main"),
+            let deathFlashVertexFunc = library.makeFunction(name: "vertex_death_flash"),
+            let deathFlashFragmentFunc = library.makeFunction(name: "fragment_death_flash")
+        else {
+            fatalError("Shaders not found")
+        }
+        self.mainVertexFunc = mainVertexFunc
+        self.mainFragmentFunc = mainFragmentFunc
+        self.deathFlashVertexFunc = deathFlashVertexFunc
+        self.deathFlashFragmentFunc = deathFlashFragmentFunc
+        return library
     }
 
     func makePipelineDescriptor(vertexFunc: MTLFunction, fragmentFunc: MTLFunction) -> MTLRenderPipelineDescriptor {
@@ -101,7 +119,7 @@ class Renderer: NSObject {
         pipelineDescriptor.vertexFunction = vertexFunc
         pipelineDescriptor.fragmentFunction = fragmentFunc
         if let attachment = pipelineDescriptor.colorAttachments[0] {
-            attachment.pixelFormat = Renderer.metalView.colorPixelFormat
+            attachment.pixelFormat = Self.metalView.colorPixelFormat
             attachment.isBlendingEnabled = true
             attachment.sourceRGBBlendFactor = .sourceAlpha
             attachment.destinationRGBBlendFactor = .oneMinusSourceAlpha
@@ -120,22 +138,21 @@ class Renderer: NSObject {
 
 extension Renderer: MTKViewDelegate {
     func mtkView(_: MTKView, drawableSizeWillChange size: CGSize) {
-        Renderer.windowSize.width = UInt32(size.width)
-        Renderer.windowSize.height = UInt32(size.height)
-        Renderer.safeAreaInsets = UIApplication.shared.windows.first(where: { $0.isKeyWindow })?.safeAreaInsets ?? .zero
+        Self.windowSize.width = UInt32(size.width)
+        Self.windowSize.height = UInt32(size.height)
 
-        Renderer.proj = float4x4.ortho(
+        Self.proj = float4x4.ortho(
             left: 0,
-            right: Float(Renderer.windowSize.width),
-            bottom: Float(Renderer.windowSize.height),
+            right: Float(Self.windowSize.width),
+            bottom: Float(Self.windowSize.height),
             top: 0,
             near: 0,
             far: 1
         )
 
-        if let ground = Renderer.world.child(name: "ground") as? Ground,
-           let bird = Renderer.world.child(name: "bird") as? Bird,
-           let scoreLabel = Renderer.world.child(name: "scoreLabel") as? ScoreLabel
+        if let ground = Game.world.child(name: "ground") as? Ground,
+           let bird = Game.world.child(name: "bird") as? Bird,
+           let scoreLabel = Game.world.child(name: "scoreLabel") as? ScoreLabel
         {
             ground.updateScreenSize()
             bird.updateScreenSize()
@@ -144,9 +161,7 @@ extension Renderer: MTKViewDelegate {
     }
 
     func update(_ deltaTime: Float) {
-        Renderer.world.update(deltaTime)
-        Renderer.soundboard.queueUpdate()
-        Renderer.deathFlash.update(deltaTime)
+        game.update(deltaTime)
     }
 
     func draw(in view: MTKView) {
@@ -161,7 +176,7 @@ extension Renderer: MTKViewDelegate {
         update(Float(deltaTime))
 
         guard
-            let commandBuffer = Self.commandQueue.makeCommandBuffer(),
+            let commandBuffer = commandQueue.makeCommandBuffer(),
             let rpDescriptor = view.currentRenderPassDescriptor,
             let renderEncoder = commandBuffer.makeRenderCommandEncoder(
                 descriptor: rpDescriptor
@@ -170,10 +185,10 @@ extension Renderer: MTKViewDelegate {
             return
         }
         renderEncoder.setRenderPipelineState(renderState)
-        Renderer.world.draw(renderEncoder: renderEncoder)
+        Game.world.draw(renderEncoder: renderEncoder)
 
         renderEncoder.setRenderPipelineState(deathFlashRenderState)
-        Renderer.deathFlash.draw(renderEncoder: renderEncoder)
+        Game.deathFlash.draw(renderEncoder: renderEncoder)
 
         renderEncoder.endEncoding()
 

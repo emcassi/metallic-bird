@@ -10,10 +10,10 @@ class ScoreController {
 
     static func increment() {
         score += 1
-        if let scoreLabel = Renderer.world.child(name: "scoreLabel") as? ScoreLabel {
+        if let scoreLabel = Game.world.child(name: "scoreLabel") as? ScoreLabel {
             scoreLabel.updateLabel()
         }
-        Renderer.soundboard.play(sfx: .score)
+        Game.soundboard.play(sfx: .score)
     }
 
     static func reset() {
