@@ -54,7 +54,7 @@ class Pipe: GameObject {
     func checkCollision() {
         guard let topPipe = child(name: "topPipe"),
               let bottomPipe = child(name: "bottomPipe"),
-              let bird = Renderer.world.child(name: "bird")
+              let bird = Game.world.child(name: "bird")
         else {
             return
         }
@@ -66,7 +66,7 @@ class Pipe: GameObject {
             transform: bottomTransform,
             other: bird.transform
         ) {
-            Renderer.gameState = .dying
+            Game.gameState = .dying
         } else {}
     }
 

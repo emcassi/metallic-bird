@@ -34,6 +34,6 @@ class World: GameObject {
         addChild(name: "bird", object: Bird() as Bird)
         addChild(name: "scoreLabel", object: ScoreLabel() as ScoreLabel)
 
-        Renderer.gameState = .ready
+        Game.gameState = .ready
     }
 }

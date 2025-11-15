@@ -31,7 +31,7 @@ class Bird: GameObject {
     let animationGameDelay: Float = 0.075
     var animationTimer: Float
 
-    let soundboard = Renderer.soundboard
+    let soundboard = Game.soundboard
 
     var isDead: Bool = false
     var isDeathFall: Bool = false
@@ -42,9 +42,6 @@ class Bird: GameObject {
 
     init() {
         animationTimer = animationReadyDelay
-        #if !DEBUG
-            feedback = UIImpactFeedbackGenerator(view: Renderer.metalView)
-        #endif
         super.init(textureName: textures[currentTexture].rawValue)
 
         let transform = Transform2D(
@@ -56,20 +53,18 @@ class Bird: GameObject {
         self.transform = transform
         updateScreenSize()
         self.transform.position = Bird.startPos
-        #if !DEBUG
-            feedback.prepare()
-        #endif
     }
 
     override func update(_ deltaTime: Float, parent _: GameObject? = nil) {
         if InputController.taps > 0 {
             onTap()
         }
-        if Renderer.gameState == .ready {
+
+        if Game.gameState == .ready {
             transform.position = Bird.startPos
             handleAnimation(deltaTime)
             return
-        } else if Renderer.gameState == .dying, !isDead {
+        } else if Game.gameState == .dying, !isDead {
             die()
         }
 
@@ -99,7 +94,7 @@ class Bird: GameObject {
                 die()
             }
 
-            Renderer.gameState = .gameOver
+            Game.gameState = .gameOver
             return
         }
 
@@ -118,7 +113,7 @@ class Bird: GameObject {
                 currentTexture = 0
             }
             sprite?.setTexture(name: textures[currentTexture].rawValue, type: BaseColor)
-            if Renderer.gameState == .ready {
+            if Game.gameState == .ready {
                 animationTimer = animationReadyDelay
             } else {
                 animationTimer = animationGameDelay
@@ -130,21 +125,21 @@ class Bird: GameObject {
         let size = Vector2(x: Float(Renderer.windowSize.width), y: Float(Renderer.windowSize.height))
 
         Bird.startPos = Vector2(x: size.x / 4, y: size.y / 2)
-        minY = Float(Renderer.safeAreaInsets.top) + transform.size.y * transform.scale
+        minY = Float(Renderer.metalView.safeAreaInsets.top) + transform.size.y * transform.scale
         maxY = Ground.groundY - transform.size.y * transform.scale * 3 / 4
     }
 
     func onTap() {
-        switch Renderer.gameState {
+        switch Game.gameState {
         case .ready:
-            Renderer.gameState = .playing
+            Game.gameState = .playing
             flap()
         case .playing:
             flap()
         case .dying:
             break
         case .gameOver:
-            Renderer.world.reset()
+            Game.world.reset()
         }
         InputController.taps -= 1
     }
@@ -152,20 +147,20 @@ class Bird: GameObject {
     func flap() {
         velocity.y = jumpForce
         #if !DEBUG
-            feedback.impactOccurred(intensity: 0.5)
+            Game.hapticGenerator.impactOccurred(intensity: 0.5)
         #endif
         soundboard.play(sfx: .flap)
     }
 
     func die() {
         if !isDead {
-            Renderer.gameState = .dying
+            Game.gameState = .dying
             velocity = .zero
             isDead = true
             soundboard.addToQueue(sfx: .hit)
-            Renderer.deathFlash.setActive()
+            Game.deathFlash.setActive()
             #if !DEBUG
-                feedback.impactOccurred(intensity: 1)
+                Game.hapticGenerator.impactOccurred(intensity: 1)
             #endif
         }
     }
